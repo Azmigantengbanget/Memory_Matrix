@@ -1,8 +1,7 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Memory Matrix Game</title>
     <style>
         /* CSS untuk styling game */
@@ -15,6 +14,8 @@
             background-color: #2c3e50;
             color: #ecf0f1;
             margin: 0;
+            /* Tambahan: Mencegah scroll pada body jika game-container terlalu besar */
+            overflow: hidden;
         }
 
         .game-container {
@@ -25,17 +26,24 @@
             text-align: center;
             width: 90%;
             max-width: 500px;
+            /* Tambahan: Pastikan container tidak melebihi tinggi viewport */
+            max-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box; /* Pastikan padding dihitung dalam lebar/tinggi */
         }
 
         h1 {
             color: #e74c3c;
             margin-bottom: 20px;
+            font-size: 2em; /* Ukuran font yang lebih responsif */
         }
 
-        /* Kelas .info diubah agar hanya menampilkan level */
         .info {
             display: flex;
-            justify-content: center; /* Pusat di tengah */
+            justify-content: center;
             margin-bottom: 20px;
             font-size: 1.2em;
         }
@@ -50,6 +58,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             margin-bottom: 20px;
+            flex-shrink: 0; /* Mencegah tombol mengecil */
         }
 
         button:hover {
@@ -66,6 +75,10 @@
             margin-bottom: 20px;
             opacity: 0; /* Sembunyikan board awalnya */
             transition: opacity 0.5s ease;
+            width: 100%; /* Pastikan board mengambil lebar penuh container */
+            max-width: calc(100% - 10px); /* Kurangi padding total border */
+            aspect-ratio: 1 / 1; /* Penting: Menjaga rasio aspek persegi */
+            box-sizing: border-box;
         }
 
         .game-board.active {
@@ -73,8 +86,7 @@
         }
 
         .cell {
-            width: 60px; /* Ukuran default */
-            height: 60px; /* Ukuran default */
+            /* Hapus width/height tetap. Kita akan gunakan aspek rasio. */
             background-color: #5d6d7e;
             border-radius: 5px;
             cursor: pointer;
@@ -83,6 +95,8 @@
             justify-content: center;
             align-items: center;
             font-size: 0; /* Sembunyikan angka */
+            aspect-ratio: 1 / 1; /* Penting: Selalu persegi */
+            box-sizing: border-box;
         }
 
         .cell.active {
@@ -105,14 +119,18 @@
             font-size: 1.3em;
             font-weight: bold;
             color: #ecf0f1;
+            /* Tambahan: Pastikan pesan tidak menyebabkan overflow */
+            word-wrap: break-word;
+            text-align: center;
+            padding: 0 10px;
         }
 
-        /* Penyesuaian ukuran cell berdasarkan jumlah kolom untuk responsiveness */
-        .game-board[style*="grid-template-columns"] .cell {
-            width: auto; /* Biarkan CSS Grid menentukan lebar */
-            height: auto; /* Biarkan CSS Grid menentukan tinggi */
-            aspect-ratio: 1 / 1; /* Menjaga aspek rasio kotak */
-        }
+        /* Penyesuaian ukuran cell tidak lagi diperlukan dengan aspect-ratio */
+        /* .game-board[style*="grid-template-columns"] .cell {
+            width: auto;
+            height: auto;
+            aspect-ratio: 1 / 1;
+        } */
     </style>
 </head>
 <body>
@@ -120,7 +138,7 @@
         <h1>Memory Matrix</h1>
         <div class="info">
             <p>Level: <span id="level">1</span></p>
-            </div>
+        </div>
         <button id="startButton">Mulai Game</button>
         <div id="gameBoard" class="game-board">
             </div>
@@ -132,11 +150,9 @@
         const gameBoard = document.getElementById('gameBoard');
         const startButton = document.getElementById('startButton');
         const levelSpan = document.getElementById('level');
-        // const scoreSpan = document.getElementById('score'); // Dihapus karena skor tidak dipakai
         const messageDiv = document.getElementById('message');
 
         let currentLevel = 1;
-        // let currentScore = 0; // Dihapus karena skor tidak dipakai
         let gridSize = 3; // Dimulai dengan 3x3
         let cellsToLight = 2; // Dimulai dengan 2 kotak menyala
         let litCells = []; // Menyimpan indeks kotak yang menyala
@@ -151,7 +167,6 @@
          */
         function initializeGame() {
             currentLevel = 1;
-            // currentScore = 0; // Dihapus karena skor tidak dipakai
             gridSize = 3;
             cellsToLight = 2;
             highlightDuration = 1000; // Reset durasi highlight
@@ -284,7 +299,6 @@
 
             if (isCorrect) {
                 messageDiv.textContent = 'BENAR!';
-                // currentScore += currentLevel * 10; // Penambahan skor dihapus
                 highlightCorrectCells(); // Tampilkan kotak yang benar dengan hijau
                 gameTimeout = setTimeout(nextLevel, 1500); // Lanjut ke level berikutnya setelah jeda
             } else {
@@ -379,7 +393,6 @@
          */
         function updateInfo() {
             levelSpan.textContent = currentLevel;
-            // scoreSpan.textContent = currentScore; // Pembaruan skor dihapus
         }
 
         /**
