@@ -1,51 +1,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Memory Matrix Game</title>
     <style>
-        /* CSS untuk styling game */
+        /* Reset dan Dasar */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; /* Pastikan mengambil tinggi penuh viewport */
             background-color: #2c3e50;
             color: #ecf0f1;
             margin: 0;
-            /* Tambahan: Mencegah scroll pada body jika game-container terlalu besar */
-            overflow: hidden;
+            overflow: hidden; /* Mencegah scrolling yang tidak diinginkan */
+            -webkit-text-size-adjust: 100%; /* Mencegah auto-zoom font pada Safari iOS */
         }
 
         .game-container {
             background-color: #34495e;
-            padding: 30px;
+            padding: 20px; /* Padding sedikit dikurangi agar lebih fleksibel */
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             text-align: center;
-            width: 90%;
-            max-width: 500px;
-            /* Tambahan: Pastikan container tidak melebihi tinggi viewport */
-            max-height: 95vh;
+            width: 90%; /* Lebar relatif */
+            max-width: 500px; /* Lebar maksimum */
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
             align-items: center;
-            box-sizing: border-box; /* Pastikan padding dihitung dalam lebar/tinggi */
+            justify-content: center; /* Pusat konten secara vertikal */
+            /* Tinggi maksimum agar tidak keluar layar HP, terutama di landscape */
+            max-height: 90vh; /* Menggunakan vh untuk tinggi viewport */
+            box-sizing: border-box; /* Padding dan border termasuk dalam lebar/tinggi */
         }
 
         h1 {
             color: #e74c3c;
-            margin-bottom: 20px;
-            font-size: 2em; /* Ukuran font yang lebih responsif */
+            margin-bottom: 15px; /* Margin sedikit disesuaikan */
+            font-size: 2.2em;
+            flex-shrink: 0; /* Mencegah h1 mengecil */
         }
 
         .info {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Margin disesuaikan */
             font-size: 1.2em;
+            flex-shrink: 0; /* Mencegah info mengecil */
         }
 
         button {
@@ -65,6 +67,23 @@
             background-color: #2ecc71;
         }
 
+        /* Perbaikan utama untuk stabilitas tampilan board */
+        .game-board-wrapper {
+            /* Wrapper ini akan memiliki ukuran tetap agar board di dalamnya stabil */
+            width: 100%;
+            padding-bottom: 100%; /* Rasio aspek 1:1, tinggi sama dengan lebar */
+            position: relative; /* Diperlukan untuk penempatan absolut .game-board */
+            max-width: 400px; /* Batasi ukuran maksimum wrapper */
+            max-height: 400px; /* Batasi ukuran maksimum wrapper */
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            flex-grow: 1; /* Biarkan wrapper mengambil ruang yang tersedia */
+            display: flex; /* Untuk memusatkan .game-board di dalamnya */
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Pastikan tidak ada overflow jika board sedikit keluar */
+        }
+
         .game-board {
             display: grid;
             gap: 5px;
@@ -72,65 +91,60 @@
             padding: 5px;
             border-radius: 8px;
             background-color: #2980b9;
-            margin-bottom: 20px;
-            opacity: 0; /* Sembunyikan board awalnya */
+            opacity: 0;
             transition: opacity 0.5s ease;
-            width: 100%; /* Pastikan board mengambil lebar penuh container */
-            max-width: calc(100% - 10px); /* Kurangi padding total border */
-            aspect-ratio: 1 / 1; /* Penting: Menjaga rasio aspek persegi */
-            box-sizing: border-box;
+            
+            position: absolute; /* Posisikan absolut di dalam wrapper */
+            top: 0;
+            left: 0;
+            width: 100%; /* Ambil 100% lebar wrapper */
+            height: 100%; /* Ambil 100% tinggi wrapper */
+            box-sizing: border-box; /* Pastikan padding dihitung dalam lebar/tinggi */
         }
 
         .game-board.active {
-            opacity: 1; /* Tampilkan saat aktif */
+            opacity: 1;
         }
 
         .cell {
-            /* Hapus width/height tetap. Kita akan gunakan aspek rasio. */
             background-color: #5d6d7e;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.2s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0; /* Sembunyikan angka */
-            aspect-ratio: 1 / 1; /* Penting: Selalu persegi */
+            aspect-ratio: 1 / 1; /* Pastikan setiap sel tetap persegi */
             box-sizing: border-box;
+            /* Tambahan: Mencegah teks terpilih yang bisa memicu zoom */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         .cell.active {
-            background-color: #f1c40f; /* Warna saat menyala */
+            background-color: #f1c40f;
         }
 
         .cell.selected {
-            background-color: #3498db; /* Warna saat diklik pemain */
+            background-color: #3498db;
         }
 
         .cell.correct {
-            background-color: #27ae60; /* Warna saat benar */
+            background-color: #27ae60;
         }
 
         .cell.incorrect {
-            background-color: #e74c3c; /* Warna saat salah */
+            background-color: #e74c3c;
         }
 
         .message {
             font-size: 1.3em;
             font-weight: bold;
             color: #ecf0f1;
-            /* Tambahan: Pastikan pesan tidak menyebabkan overflow */
-            word-wrap: break-word;
-            text-align: center;
+            margin-top: auto; /* Mendorong pesan ke bawah jika container fleksibel */
             padding: 0 10px;
+            flex-shrink: 0; /* Mencegah pesan mengecil */
+            word-wrap: break-word; /* Mencegah overflow teks panjang */
         }
-
-        /* Penyesuaian ukuran cell tidak lagi diperlukan dengan aspect-ratio */
-        /* .game-board[style*="grid-template-columns"] .cell {
-            width: auto;
-            height: auto;
-            aspect-ratio: 1 / 1;
-        } */
     </style>
 </head>
 <body>
@@ -140,8 +154,10 @@
             <p>Level: <span id="level">1</span></p>
         </div>
         <button id="startButton">Mulai Game</button>
-        <div id="gameBoard" class="game-board">
-            </div>
+        <div class="game-board-wrapper">
+            <div id="gameBoard" class="game-board">
+                </div>
+        </div>
         <div id="message" class="message"></div>
     </div>
 
