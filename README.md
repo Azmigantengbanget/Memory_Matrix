@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -25,13 +26,17 @@
             width: 90%;
             max-width: 500px;
             
-            /* Fleksibilitas dan Stabilitas Utama */
+            /* Tetapkan tinggi tetap jika memungkinkan, atau min-height yang cukup besar */
+            /* Menggunakan tinggi tetap bisa sangat membantu stabilitas */
+            height: 550px; /* Contoh tinggi tetap. Sesuaikan ini agar semua konten muat */
+            /* Atau gunakan min-height: 550px; jika Anda ingin sedikit fleksibilitas lebih */
+            
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            /* Pastikan distribusi ruang yang stabil */
+            justify-content: space-between; 
             align-items: center;
-            min-height: 450px; /* Tingkatkan min-height untuk menampung grid yang lebih besar dan pesan */
-            box-sizing: border-box; /* Pastikan padding termasuk dalam lebar/tinggi */
+            box-sizing: border-box; 
         }
 
         h1 {
@@ -44,8 +49,9 @@
             justify-content: center;
             margin-bottom: 20px;
             font-size: 1.2em;
-            /* Tambahkan min-height agar tidak loncat */
-            min-height: 1.5em; /* Cukup untuk satu baris teks level */
+            /* Memberikan tinggi yang pasti agar tidak loncat */
+            height: 1.5em; /* Tepat untuk satu baris teks level */
+            line-height: 1.5em; /* Pastikan teks berada di tengah vertikal */
         }
 
         button {
@@ -58,36 +64,41 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             margin-bottom: 20px;
+            flex-shrink: 0; /* Pastikan tombol tidak menyusut */
         }
 
         button:hover {
             background-color: #2ecc71;
         }
 
-        /* Container untuk board yang akan mempertahankan ukuran */
         .board-wrapper {
             width: 100%;
-            padding-bottom: 100%; /* Membuat kotak aspek rasio 1:1 */
+            /* Menggunakan max-width pada board-wrapper agar tetap proporsional */
+            /* Ini mungkin perlu disesuaikan dengan ukuran grid terbesar (MAX_GRID_SIZE) */
+            /* Contoh: Jika MAX_GRID_SIZE = 6, dan cell size ~50px, maka (6*50) + (5*5) = 325px */
+            /* Atau biarkan padding-bottom 100% jika lebar container sudah cukup */
+            max-width: 400px; /* Maksimum 400px untuk board, sesuaikan jika perlu */
+            padding-bottom: 100%; /* Membuat kotak aspek rasio 1:1 relatif terhadap max-width */
             position: relative;
             margin-bottom: 20px;
-            border: 3px solid #3498db; /* Border biru untuk board */
+            border: 3px solid #3498db; 
             border-radius: 8px;
-            background-color: #2980b9; /* Warna latar belakang board */
-            overflow: hidden; /* Pastikan tidak ada overflow dari sel */
+            background-color: #2980b9; 
+            overflow: hidden; 
+            flex-grow: 1; /* Memungkinkan wrapper mengambil ruang yang tersedia */
+            flex-shrink: 1;
+            display: flex; /* Tambahkan flex agar game-board bisa ditengah */
+            justify-content: center;
+            align-items: center;
         }
 
         .game-board {
-            position: absolute;
-            top: 5px; /* Sesuaikan dengan padding wrapper */
-            left: 5px; /* Sesuaikan dengan padding wrapper */
-            right: 5px; /* Sesuaikan dengan padding wrapper */
-            bottom: 5px; /* Sesuaikan dengan padding wrapper */
+            /* Hapus absolute positioning dan biarkan flexbox mengatur */
+            /* position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px; */
+            width: calc(100% - 10px); /* Lebar penuh dikurangi padding border wrapper */
+            height: calc(100% - 10px); /* Tinggi penuh dikurangi padding border wrapper */
             display: grid;
             gap: 5px;
-            /* Hapus padding dan border dari sini karena sudah di wrapper */
-            /* padding: 5px; */
-            /* border-radius: 8px; */
-            /* background-color: #2980b9; */
             
             visibility: hidden;
             opacity: 0;
@@ -128,15 +139,16 @@
         }
 
         .message {
-            /* Pastikan tinggi ini selalu stabil */
-            min-height: 2.5em; /* Cukup untuk dua baris pesan atau pesan panjang */
-            display: flex; /* Untuk memusatkan teks vertikal jika hanya satu baris */
-            align-items: center; /* Memusatkan teks secara vertikal */
-            justify-content: center; /* Memusatkan teks secara horizontal */
+            /* Ini yang paling penting untuk stabilitas */
+            height: 2.5em; /* Set tinggi tetap untuk elemen pesan */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
             font-size: 1.3em;
             font-weight: bold;
             color: #ecf0f1;
-            margin-top: auto; /* Dorong pesan ke bawah */
+            margin-top: auto; 
+            flex-shrink: 0; /* Pastikan pesan tidak menyusut */
         }
     </style>
 </head>
@@ -156,14 +168,14 @@
 
     <script>
         const gameBoard = document.getElementById('gameBoard');
-        const boardWrapper = document.getElementById('boardWrapper'); // Ambil wrapper board
+        const boardWrapper = document.getElementById('boardWrapper'); 
         const startButton = document.getElementById('startButton');
         const levelSpan = document.getElementById('level');
         const messageDiv = document.getElementById('message');
 
         let currentLevel = 1;
         let gridSize = 3; 
-        const MAX_GRID_SIZE = 6; // Tetapkan ukuran grid maksimum yang akan selalu ada di DOM
+        const MAX_GRID_SIZE = 6; // Tetapkan ukuran grid maksimum
         let cellsToLight = 2; 
         let litCells = []; 
         let playerClicks = []; 
@@ -178,9 +190,8 @@
             highlightDuration = 1000;
             updateInfo();
             
-            // Perlu clear board sebelum buildBoard di inisialisasi agar semua sel tersembunyi
-            clearBoard(); // Memastikan semua highlight dihapus
-            buildBoard(); // Pastikan board dibangun ulang dengan ukuran awal
+            clearBoard(); 
+            buildBoard(); // Bangun ulang dengan MAX_GRID_SIZE dan sembunyikan yang tidak perlu
 
             messageDiv.textContent = 'Klik "Mulai Game" untuk memulai!';
             startButton.textContent = 'Mulai Game';
@@ -197,7 +208,7 @@
             startButton.style.display = 'none';
             messageDiv.textContent = '';
             
-            buildBoard(); // Pastikan board dibangun ulang untuk level saat ini
+            buildBoard(); // Pastikan board selalu dibangun ulang dengan MAX_GRID_SIZE
             gameBoard.classList.add('active'); 
             gameBoard.style.pointerEvents = 'none'; 
 
@@ -205,8 +216,6 @@
         }
 
         function buildBoard() {
-            // Kita akan selalu membangun board dengan ukuran MAX_GRID_SIZE
-            // dan mengatur tampilan sel yang relevan dengan gridSize saat ini.
             gameBoard.innerHTML = ''; 
             gameBoard.style.gridTemplateColumns = `repeat(${MAX_GRID_SIZE}, 1fr)`; 
             const totalMaxCells = MAX_GRID_SIZE * MAX_GRID_SIZE; 
@@ -219,7 +228,7 @@
                 gameBoard.appendChild(cell);
             }
             
-            // Sembunyikan sel yang tidak relevan dengan gridSize saat ini
+            // Perbarui visibilitas sel setelah membangun board
             updateCellVisibility(); 
         }
 
@@ -227,23 +236,28 @@
             const allCells = document.querySelectorAll('.cell');
             const currentTotalCells = gridSize * gridSize;
 
+            // Mengatur display sel agar tidak terlihat di luar grid aktif
             allCells.forEach((cell, index) => {
                 if (index < currentTotalCells) {
-                    cell.style.display = 'flex'; /* Tampilkan sel yang relevan */
+                    cell.style.display = 'flex'; 
                 } else {
-                    cell.style.display = 'none'; /* Sembunyikan sel yang tidak digunakan */
+                    cell.style.display = 'none'; 
                 }
             });
+
+            // Penting: Atur grid-template-columns untuk gameBoard itu sendiri
+            // agar hanya sel yang aktif yang memengaruhi tata letak grid
+            gameBoard.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
         }
 
         function showPattern() {
             litCells = []; 
             playerClicks = []; 
             const allCells = Array.from(document.querySelectorAll('.cell'));
-            const currentTotalCells = gridSize * gridSize; // Hanya pilih dari sel yang aktif
+            const currentTotalCells = gridSize * gridSize; 
 
             while (litCells.length < cellsToLight) {
-                const randomIndex = Math.floor(Math.random() * currentTotalCells); // Pilih dari sel yang terlihat
+                const randomIndex = Math.floor(Math.random() * currentTotalCells); 
                 if (!litCells.includes(randomIndex)) { 
                     litCells.push(randomIndex);
                 }
@@ -271,7 +285,7 @@
 
             const clickedIndex = parseInt(event.target.dataset.index);
 
-            // Penting: Pastikan yang diklik adalah sel yang aktif/terlihat
+            // Pastikan yang diklik adalah sel yang aktif/terlihat
             if (clickedIndex >= (gridSize * gridSize)) return;
 
             if (playerClicks.includes(clickedIndex)) return;
@@ -349,8 +363,8 @@
             currentLevel++;
             updateDifficulty(); 
             updateInfo(); 
-            // Tidak perlu buildBoard lagi jika gridnya statis, hanya update visibilitas
-            updateCellVisibility(); // Penting untuk menampilkan/menyembunyikan sel sesuai gridSize baru
+            
+            updateCellVisibility(); // Penting: ini akan mengatur `grid-template-columns` gameBoard
             gameBoard.style.pointerEvents = 'none'; 
             gameTimeout = setTimeout(showPattern, 1000); 
         }
@@ -358,7 +372,6 @@
         function updateDifficulty() {
             cellsToLight++;
 
-            // Jika level sudah cukup tinggi, tingkatkan gridSize
             if (currentLevel % 3 === 0 && gridSize < MAX_GRID_SIZE) {
                 gridSize++;
             }
@@ -369,7 +382,6 @@
                 if (cellsToLight < 2) cellsToLight = 2; 
             }
             
-            // Mempersingkat durasi highlight
             if (currentLevel > 5 && highlightDuration > 300) {
                 highlightDuration -= 50;
             } else if (currentLevel > 10 && highlightDuration > 100) {
@@ -394,7 +406,6 @@
             }
         });
 
-        // Inisialisasi game saat halaman pertama kali dimuat
         initializeGame();
     </script>
 </body>
